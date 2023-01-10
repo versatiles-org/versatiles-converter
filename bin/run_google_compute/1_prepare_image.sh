@@ -61,7 +61,7 @@ do
 done
 
 # Setup machine
-gcloud compute ssh opencloudtiles-converter --command='curl -Ls "https://github.com/OpenCloudTiles/opencloudtiles-converter/raw/main/bin/basic_scripts/1_setup_debian.sh" | sudo bash'
+gcloud compute ssh opencloudtiles-converter --command='curl -Ls "https://github.com/OpenCloudTiles/opencloudtiles-converter/raw/main/bin/basic_scripts/1_setup_debian.sh" | bash'
 
 
 
