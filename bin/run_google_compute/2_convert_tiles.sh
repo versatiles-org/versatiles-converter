@@ -1,7 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
-set -ex
 
 name="2023-01-eu"
 tile_src="gs://opencloudtiles/mbtiles/$name.mbtiles"
@@ -17,6 +16,48 @@ machine_type="n2d-highcpu-8"     # 8 cores
 #machine_type="n2d-highcpu-96"    # 96 cores
 #machine_type="n2d-highcpu-128"   # 128 cores
 #machine_type="n2d-highcpu-224"   # 224 cores
+
+
+value=$(gcloud config get-value project)
+if [ $value = "" ]; then
+	echo "   ❗️ set a default project in gcloud, e.g.:"
+	echo "   # gcloud config set project PROJECT_ID"
+	echo "   ❗️ see also: https://cloud.google.com/artifact-registry/docs/repositories/gcloud-defaults#project"
+	exit 1
+else
+	echo "   ✅ gcloud project: $value"
+fi
+
+value=$(gcloud config get-value compute/region)
+if [ $value = "" ]; then
+	echo "   ❗️ set a default compute/region in gcloud, e.g.:"
+	echo "   # gcloud config set compute/region europe-west3"
+	echo "   ❗️ see also: https://cloud.google.com/compute/docs/gcloud-compute#set_default_zone_and_region_in_your_local_client"
+	exit 1
+else
+	echo "   ✅ gcloud compute/region: $value"
+fi
+
+value=$(gcloud config get-value compute/zone)
+if [ $value = "" ]; then
+	echo "   ❗️ set a default compute/zone in gcloud, e.g.:"
+	echo "   # gcloud config set compute/zone europe-west3-c"
+	echo "   ❗️ see also: https://cloud.google.com/compute/docs/gcloud-compute#set_default_zone_and_region_in_your_local_client"
+	exit 1
+else
+	echo "   ✅ gcloud compute/zone: $value"
+fi
+
+value=$(gcloud compute instances describe opencloudtiles-converter)
+if [ $? -eq 0 ]; then
+	echo "   ❗️ opencloudtiles-converter machine already exist. Delete it:"
+	echo "   # gcloud compute instances delete opencloudtiles-converter -q"
+	exit 1
+else
+	echo "   ✅ gcloud instance ready"
+fi
+
+set -ex
 
 # create VM from image
 gcloud compute instances create opencloudtiles-converter \
