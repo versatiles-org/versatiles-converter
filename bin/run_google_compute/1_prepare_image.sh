@@ -38,13 +38,22 @@ else
 	echo "   ✅ gcloud compute/zone: $value"
 fi
 
-value=$(gcloud compute instances describe opencloudtiles-converter)
+value=$(gcloud compute instances describe opencloudtiles-converter > /dev/null)
 if [ $? -eq 0 ]; then
 	echo "   ❗️ opencloudtiles-converter machine already exist. Delete it:"
 	echo "   # gcloud compute instances delete opencloudtiles-converter -q"
 	exit 1
 else
 	echo "   ✅ gcloud instance ready"
+fi
+
+value=$(gcloud compute images describe opencloudtiles-converter > /dev/null)
+if [ $? -eq 0 ]; then
+	echo "   ❗️ opencloudtiles-converter image already exist. Delete it:"
+	echo "   # gcloud compute images delete opencloudtiles-converter -q"
+	exit 1
+else
+	echo "   ✅ gcloud image clean"
 fi
 
 
