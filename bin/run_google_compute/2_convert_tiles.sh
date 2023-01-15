@@ -86,7 +86,7 @@ done
 
 # prepare command and run it via SSH
 command="source .profile"
-command="$command; gsutil cp $tile_src ."
+command="$command; gsutil -o 'GSUtil:parallel_thread_count=1' -o 'GSUtil:parallel_process_count=8' cp $tile_src ."
 command="$command; opencloudtiles convert $(basename $tile_src) $(basename $tile_dst)"
 command="$command; gsutil cp $(basename $tile_dst) $tile_dst"
 
