@@ -2,13 +2,13 @@
 cd "$(dirname "$0")"
 
 
-name="2023-01-eu"
+name="2023-01-planet"
 tile_src="gs://opencloudtiles/mbtiles/$name.mbtiles"
 tile_dst="gs://opencloudtiles/cloudtiles/$name.cloudtiles"
 
 #machine_type="n2d-highcpu-2"     # 2 cores
-#machine_type="n2d-highcpu-4"     # 4 cores
-machine_type="n2d-highcpu-8"     # 8 cores
+machine_type="n2d-highcpu-4"     # 4 cores
+#machine_type="n2d-highcpu-8"     # 8 cores
 #machine_type="n2d-highcpu-16"    # 16 cores
 #machine_type="n2d-highcpu-32"    # 32 cores
 #machine_type="n2d-highcpu-48"    # 48 cores
