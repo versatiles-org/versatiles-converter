@@ -6,17 +6,18 @@ name="2023-01-planet"
 tile_src="gs://opencloudtiles/mbtiles/$name.mbtiles"
 tile_dst="gs://opencloudtiles/cloudtiles/$name.cloudtiles"
 
-#machine_type="n2d-highcpu-2"     # 2 cores
-machine_type="n2d-highcpu-4"     # 4 cores
-#machine_type="n2d-highcpu-8"     # 8 cores
-#machine_type="n2d-highcpu-16"    # 16 cores
-#machine_type="n2d-highcpu-32"    # 32 cores
-#machine_type="n2d-highcpu-48"    # 48 cores
-#machine_type="n2d-highcpu-80"    # 80 cores
-#machine_type="n2d-highcpu-96"    # 96 cores
-#machine_type="n2d-highcpu-128"   # 128 cores
-#machine_type="n2d-highcpu-224"   # 224 cores
+file_size=$(gcloud storage ls -L $tile_src | grep "Content-Length" | sed 's/^.*: *//')
 
+if ! [[ $file_size =~ '^[0-9]{5,}$' ]] ; then
+   echo "   ❗️ file_size is not a number, maybe $tile_src does not exist?"
+	exit 1
+else
+	echo "   ✅ file exists: $tile_src"
+fi
+
+ram_disk_size=$(perl -E "use POSIX;say ceil($file_size/1073741824 + 0.3)")
+cpu_count=$(perl -E "use POSIX;say 2 ** ceil(log($ram_disk_size+2)/log(2) - 3)")
+machine_type="n2d-highmem-$cpu_count"
 
 value=$(gcloud config get-value project)
 if [ $value = "" ]; then
@@ -85,13 +86,20 @@ do
 done
 
 # prepare command and run it via SSH
-command="source .profile"
-command="$command; gsutil -o 'GSUtil:parallel_thread_count=1' -o 'GSUtil:parallel_process_count=8' cp $tile_src ."
-command="$command; opencloudtiles convert $(basename $tile_src) $(basename $tile_dst)"
-command="$command; gsutil cp $(basename $tile_dst) $tile_dst"
+file_src=$(basename $tile_src)
+file_dst=$(basename $tile_dst)
+
+read -r -d '' command <<EOF
+source .profile
+mkdir ramdisk
+sudo mount -t tmpfs -o size=${ram_disk_size}G ramdisk ramdisk
+gcloud storage cp gs://opencloudtiles/mbtiles/$file_src ramdisk/
+opencloudtiles convert ramdisk/$file_src $file_dst
+gcloud storage cp $file_dst $tile_dst
+EOF
 
 gcloud compute ssh opencloudtiles-converter --command="$command" -- -t
 
+# Stop and delete
 gcloud compute instances stop opencloudtiles-converter --quiet
-
 gcloud compute instances delete opencloudtiles-converter --quiet
