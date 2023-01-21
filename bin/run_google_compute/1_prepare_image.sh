@@ -65,8 +65,7 @@ gcloud compute instances create opencloudtiles-converter \
 	--image-project=debian-cloud \
 	--image-family=debian-11 \
 	--boot-disk-size=300GB \
-	--boot-disk-type=pd-ssd \
-	--machine-type=n2d-highcpu-4
+	--machine-type=n2d-highcpu-2
 
 # Wait till SSH is available
 sleep 10
