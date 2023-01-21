@@ -1,6 +1,4 @@
-#!/bin/bash
-cd "$(dirname "$0")"
-
+#!/usr/bin/env bash
 
 name="2023-01-planet"
 tile_src="gs://opencloudtiles/mbtiles/$name.mbtiles"

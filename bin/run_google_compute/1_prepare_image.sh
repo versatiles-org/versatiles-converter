@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 
 
@@ -75,8 +75,16 @@ do
 	sleep 5
 done
 
+read -r -d '' command <<EOF
+sudo apt-get -qq update
+sudo apt-get -qq install -y build-essential git wget unzip tmux htop aria2 sysstat brotli cmake ifstat libsqlite3-dev
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "\$HOME/.cargo/env"
+cargo install opencloudtiles
+EOF
+
 # Setup machine
-gcloud compute ssh opencloudtiles-converter --command='curl -Ls "https://github.com/OpenCloudTiles/opencloudtiles-converter/raw/main/bin/basic_scripts/1_setup_debian.sh" | bash'
+gcloud compute ssh opencloudtiles-converter --command="$command" -- -t
 
 
 
