@@ -36,19 +36,19 @@ else
 	echo "   ✅ gcloud compute/zone: $value"
 fi
 
-value=$(gcloud compute instances describe opencloudtiles-converter 2>&1 > /dev/null)
+value=$(gcloud compute instances describe versatiles-converter 2>&1 > /dev/null)
 if [ $? -eq 0 ]; then
-	echo "   ❗️ opencloudtiles-converter machine already exist. Delete it:"
-	echo "   # gcloud compute instances delete opencloudtiles-converter -q"
+	echo "   ❗️ versatiles-converter machine already exist. Delete it:"
+	echo "   # gcloud compute instances delete versatiles-converter -q"
 	exit 1
 else
 	echo "   ✅ gcloud instance free"
 fi
 
-value=$(gcloud compute images describe opencloudtiles-converter 2>&1 > /dev/null)
+value=$(gcloud compute images describe versatiles-converter 2>&1 > /dev/null)
 if [ $? -eq 0 ]; then
-	echo "   ❗️ opencloudtiles-converter image already exist. Delete it:"
-	echo "   # gcloud compute images delete opencloudtiles-converter -q"
+	echo "   ❗️ versatiles-converter image already exist. Delete it:"
+	echo "   # gcloud compute images delete versatiles-converter -q"
 	exit 1
 else
 	echo "   ✅ gcloud image free"
@@ -61,7 +61,7 @@ fi
 ##########################################
 
 # Create VM
-gcloud compute instances create opencloudtiles-converter \
+gcloud compute instances create versatiles-converter \
 	--image-project=debian-cloud \
 	--image-family=debian-11 \
 	--boot-disk-size=300GB \
@@ -69,7 +69,7 @@ gcloud compute instances create opencloudtiles-converter \
 
 # Wait till SSH is available
 sleep 10
-while ! gcloud compute ssh opencloudtiles-converter --command=ls
+while ! gcloud compute ssh versatiles-converter --command=ls
 do
    echo "   SSL not available at VM, trying again..."
 	sleep 5
@@ -80,11 +80,11 @@ sudo apt-get -qq update
 sudo apt-get -qq install -y build-essential git wget unzip tmux htop aria2 sysstat brotli cmake ifstat libsqlite3-dev
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source "\$HOME/.cargo/env"
-cargo install opencloudtiles
+cargo install versatiles
 EOF
 
 # Setup machine
-gcloud compute ssh opencloudtiles-converter --command="$command" -- -t
+gcloud compute ssh versatiles-converter --command="$command" -- -t
 
 
 
@@ -93,10 +93,10 @@ gcloud compute ssh opencloudtiles-converter --command="$command" -- -t
 ##########################################
 
 # Stop VM
-gcloud compute instances stop opencloudtiles-converter
+gcloud compute instances stop versatiles-converter
 
 # Generate image
-gcloud compute images create opencloudtiles-converter --source-disk=opencloudtiles-converter
+gcloud compute images create versatiles-converter --source-disk=versatiles-converter
 
 # Delete Instance
-gcloud compute instances delete opencloudtiles-converter --quiet
+gcloud compute instances delete versatiles-converter --quiet

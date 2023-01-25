@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 name="2023-01-planet"
-tile_src="gs://opencloudtiles/mbtiles/$name.mbtiles"
-tile_dst="gs://opencloudtiles/cloudtiles/$name.cloudtiles"
+tile_src="gs://versatiles/mbtiles/$name.mbtiles"
+tile_dst="gs://versatiles/versatiles/$name.versatiles"
 
 file_size=$(gcloud storage ls -L $tile_src | grep "Content-Length" | sed 's/^.*: *//')
 
@@ -47,18 +47,18 @@ else
 	echo "   ✅ gcloud compute/zone: $value"
 fi
 
-value=$(gcloud compute instances describe opencloudtiles-converter 2>&1 > /dev/null)
+value=$(gcloud compute instances describe versatiles-converter 2>&1 > /dev/null)
 if [ $? -eq 0 ]; then
-	echo "   ❗️ opencloudtiles-converter machine already exist. Delete it:"
-	echo "   # gcloud compute instances delete opencloudtiles-converter -q"
+	echo "   ❗️ versatiles-converter machine already exist. Delete it:"
+	echo "   # gcloud compute instances delete versatiles-converter -q"
 	exit 1
 else
 	echo "   ✅ gcloud instance free"
 fi
 
-value=$(gcloud compute images describe opencloudtiles-converter 2>&1 > /dev/null)
+value=$(gcloud compute images describe versatiles-converter 2>&1 > /dev/null)
 if [ $? -ne 0 ]; then
-	echo "   ❗️ opencloudtiles-converter image does not exist. Create it:"
+	echo "   ❗️ versatiles-converter image does not exist. Create it:"
 	echo "   # ./1_prepare_image.sh"
 	exit 1
 else
@@ -70,14 +70,14 @@ fi
 set -ex
 
 # create VM from image
-gcloud compute instances create opencloudtiles-converter \
-	--image=opencloudtiles-converter \
+gcloud compute instances create versatiles-converter \
+	--image=versatiles-converter \
 	--machine-type=$machine_type \
 	--scopes=storage-rw
 
 # Wait till SSH is available
 sleep 10
-while ! gcloud compute ssh opencloudtiles-converter --command=ls
+while ! gcloud compute ssh versatiles-converter --command=ls
 do
    echo "   SSL not available at VM, trying again..."
 	sleep 5
@@ -91,13 +91,13 @@ read -r -d '' command <<EOF
 source .profile
 mkdir ramdisk
 sudo mount -t tmpfs -o size=${ram_disk_size}G ramdisk ramdisk
-gcloud storage cp gs://opencloudtiles/mbtiles/$file_src ramdisk/
-opencloudtiles convert ramdisk/$file_src $file_dst
+gcloud storage cp gs://versatiles/mbtiles/$file_src ramdisk/
+versatiles convert ramdisk/$file_src $file_dst
 gcloud storage cp $file_dst $tile_dst
 EOF
 
-gcloud compute ssh opencloudtiles-converter --command="$command" -- -t
+gcloud compute ssh versatiles-converter --command="$command" -- -t
 
 # Stop and delete
-gcloud compute instances stop opencloudtiles-converter --quiet
-gcloud compute instances delete opencloudtiles-converter --quiet
+gcloud compute instances stop versatiles-converter --quiet
+gcloud compute instances delete versatiles-converter --quiet
