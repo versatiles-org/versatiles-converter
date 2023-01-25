@@ -76,24 +76,22 @@ do
 done
 
 read -r -d '' command <<EOF
-sudo apt-get -qq update
-sudo apt-get -qq install -y build-essential git wget unzip tmux htop aria2 sysstat brotli cmake ifstat libsqlite3-dev
+sudo apt-get -q update
+sudo apt-get -q install -y build-essential git wget unzip tmux htop aria2 sysstat brotli cmake ifstat libsqlite3-dev openssl libssl-dev pkg-config
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source "\$HOME/.cargo/env"
 cargo install versatiles
+sudo shutdown -P now
 EOF
 
 # Setup machine
-gcloud compute ssh versatiles-converter --command="$command" -- -t
+gcloud compute ssh versatiles-converter --command="$command" -- -t || true
 
 
 
 ##########################################
 ## GENERATE IMAGE                       ##
 ##########################################
-
-# Stop VM
-gcloud compute instances stop versatiles-converter
 
 # Generate image
 gcloud compute images create versatiles-converter --source-disk=versatiles-converter
