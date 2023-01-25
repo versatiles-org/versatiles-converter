@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
 
-name="2023-01-planet"
+if [ -n "$1" ]; then
+name=$1
+else
+	echo "please select one of these files (only filename without extension):"
+	gcloud storage ls gs://versatiles/mbtiles/
+	exit 1
+fi
+
 tile_src="gs://versatiles/mbtiles/$name.mbtiles"
 tile_dst="gs://versatiles/versatiles/$name.versatiles"
 
 file_size=$(gcloud storage ls -L $tile_src | grep "Content-Length" | sed 's/^.*: *//')
 
-if ! [[ $file_size =~ '^[0-9]{5,}$' ]] ; then
-   echo "   ❗️ file_size is not a number, maybe $tile_src does not exist?"
+if ! [[ $file_size =~ ^[0-9]{5,}$ ]]; then
+   echo "   ❗️ file_size '$file_size' is not a number, maybe '$tile_src' does not exist?"
 	exit 1
 else
 	echo "   ✅ file exists: $tile_src"
 fi
 
 ram_disk_size=$(perl -E "use POSIX;say ceil($file_size/1073741824 + 0.3)")
-cpu_count=$(perl -E "use POSIX;say 2 ** ceil(log($ram_disk_size+2)/log(2) - 3)")
+cpu_count=$(perl -E "use POSIX; use List::Util qw(max); say 2 ** max(2, ceil(log($ram_disk_size+2)/log(2)) - 3)")
 machine_type="n2d-highmem-$cpu_count"
 
 value=$(gcloud config get-value project)
@@ -87,16 +94,14 @@ done
 file_src=$(basename $tile_src)
 file_dst=$(basename $tile_dst)
 
-read -r -d '' command <<EOF
+gcloud compute ssh versatiles-converter --command="
 source .profile
 mkdir ramdisk
 sudo mount -t tmpfs -o size=${ram_disk_size}G ramdisk ramdisk
 gcloud storage cp gs://versatiles/mbtiles/$file_src ramdisk/
 versatiles convert ramdisk/$file_src $file_dst
 gcloud storage cp $file_dst $tile_dst
-EOF
-
-gcloud compute ssh versatiles-converter --command="$command" -- -t
+" -- -t
 
 # Stop and delete
 gcloud compute instances stop versatiles-converter --quiet

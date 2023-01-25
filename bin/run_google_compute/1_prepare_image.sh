@@ -75,17 +75,15 @@ do
 	sleep 5
 done
 
-read -r -d '' command <<EOF
+# Setup machine
+gcloud compute ssh versatiles-converter --command="
 sudo apt-get -q update
 sudo apt-get -q install -y build-essential git wget unzip tmux htop aria2 sysstat brotli cmake ifstat libsqlite3-dev openssl libssl-dev pkg-config
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source "\$HOME/.cargo/env"
+source \"\$HOME/.cargo/env\"
 cargo install versatiles
 sudo shutdown -P now
-EOF
-
-# Setup machine
-gcloud compute ssh versatiles-converter --command="$command" -- -t || true
+" -- -t || true
 
 
 
