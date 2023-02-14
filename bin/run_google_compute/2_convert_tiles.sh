@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
 
-if [ -n "$1" ]; then
-name=$1
-else
-	echo "please select one of these files (only filename without extension):"
-	gcloud storage ls gs://versatiles/mbtiles/
-	exit 1
-fi
+echo "   👷 fetch files"
 
-tile_src="gs://versatiles/mbtiles/$name.mbtiles"
-tile_dst="gs://versatiles/versatiles/$name.versatiles"
+files=$(gcloud storage ls gs://versatiles/files/mbtiles | sed 's/.*\///g' | sed 's/\..*//g' | sed '/^$/d' | sort)
+IFS=$'\n'
+files=($files)
+COLUMNS=1
+echo "   please select a file:"
+select name in "${files[@]}"; do
+	break;
+done
+
+echo "   👷 fetch \"$name\" metadata"
+
+tile_src="gs://versatiles/files/mbtiles/$name.mbtiles"
+tile_dst="gs://versatiles/files/versatiles/$name.versatiles"
 
 file_size=$(gcloud storage ls -L $tile_src | grep "Content-Length" | sed 's/^.*: *//')
 
@@ -74,8 +79,6 @@ fi
 
 
 
-set -ex
-
 # create VM from image
 gcloud compute instances create versatiles-converter \
 	--image=versatiles-converter \
@@ -98,7 +101,7 @@ gcloud compute ssh versatiles-converter --command="
 source .profile
 mkdir ramdisk
 sudo mount -t tmpfs -o size=${ram_disk_size}G ramdisk ramdisk
-gcloud storage cp gs://versatiles/mbtiles/$file_src ramdisk/
+gcloud storage cp $tile_src ramdisk/$file_src
 versatiles convert ramdisk/$file_src $file_dst
 gcloud storage cp $file_dst $tile_dst
 " -- -t
