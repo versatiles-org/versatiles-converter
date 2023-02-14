@@ -80,6 +80,8 @@ done
 ## BUILD VM                             ##
 ##########################################
 
+echo "   👷 building vm"
+
 # Create VM
 gcloud compute instances create versatiles-converter \
 	--image-project=debian-cloud \
@@ -97,11 +99,11 @@ done
 
 # Setup machine
 gcloud compute ssh versatiles-converter --command="
-sudo apt-get -q update
-sudo apt-get -q install -y build-essential git wget unzip tmux htop aria2 sysstat brotli cmake ifstat libsqlite3-dev openssl libssl-dev pkg-config
+sudo apt-get -qq update
+sudo apt-get -qq install -y build-essential git wget unzip tmux htop aria2 sysstat brotli cmake ifstat libsqlite3-dev openssl libssl-dev pkg-config
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source \"\$HOME/.cargo/env\"
-cargo install versatiles
+cargo install -q versatiles
 sudo shutdown -P now
 " -- -t || true
 
@@ -111,8 +113,14 @@ sudo shutdown -P now
 ## GENERATE IMAGE                       ##
 ##########################################
 
+echo "   👷 building image"
+
 # Generate image
 gcloud compute images create versatiles-converter --source-disk=versatiles-converter
+
+
+
+echo "   👷 cleaning up"
 
 # Delete Instance
 gcloud compute instances delete versatiles-converter --quiet
