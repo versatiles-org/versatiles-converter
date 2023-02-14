@@ -36,23 +36,43 @@ else
 	echo "   ✅ gcloud compute/zone: $value"
 fi
 
-value=$(gcloud compute instances describe versatiles-converter 2>&1 > /dev/null)
-if [ $? -eq 0 ]; then
-	echo "   ❗️ versatiles-converter machine already exist. Delete it:"
-	echo "   # gcloud compute instances delete versatiles-converter -q"
-	exit 1
-else
-	echo "   ✅ gcloud instance free"
-fi
+while true; do
+	gcloud compute instances describe versatiles-converter &> /dev/null
+	if [ $? -eq 0 ]; then
+		echo "   ❗️ versatiles-converter machine already exist. Delete it?"
+		select yn in "Yes" "No"; do
+			case $yn in
+				Yes)
+					echo "   👷 deleting machine ..."
+					gcloud compute instances delete versatiles-converter -q;
+					break;;
+				No) exit;;
+			esac
+		done
+	else
+		echo "   ✅ gcloud instance free"
+		break
+	fi
+done
 
-value=$(gcloud compute images describe versatiles-converter 2>&1 > /dev/null)
-if [ $? -eq 0 ]; then
-	echo "   ❗️ versatiles-converter image already exist. Delete it:"
-	echo "   # gcloud compute images delete versatiles-converter -q"
-	exit 1
-else
-	echo "   ✅ gcloud image free"
-fi
+while true; do
+	gcloud compute images describe versatiles-converter &> /dev/null
+	if [ $? -eq 0 ]; then
+		echo "   ❗️ versatiles-converter image already exist. Delete it?"
+		select yn in "Yes" "No"; do
+			case $yn in
+				Yes)
+					echo "   👷 deleting image ..."
+					gcloud compute images delete versatiles-converter -q;
+					break;;
+				No) exit;;
+			esac
+		done
+	else
+		echo "   ✅ gcloud image free"
+		break
+	fi
+done
 
 
 
