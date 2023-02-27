@@ -106,7 +106,7 @@ source \"\$HOME/.cargo/env\"
 cargo install versatiles
 sudo shutdown -P now
 " -- -t || true
-gcloud compute instances stop versatiles-generator
+gcloud compute instances stop versatiles-converter
 sleep 5
 
 
