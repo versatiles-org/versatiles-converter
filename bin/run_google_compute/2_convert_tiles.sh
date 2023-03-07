@@ -2,7 +2,7 @@
 
 echo "   👷 fetch files"
 
-files=$(gcloud storage ls gs://versatiles/download/mbtiles | sed 's/.*\///g' | sed 's/\..*//g' | sed '/^$/d' | sort)
+files=$(gcloud storage ls 'gs://versatiles/download/**.mbtiles' | sed 's/.*\/download\///g' | sed 's/\.mbtiles$//g' | sort)
 IFS=$'\n'
 files=($files)
 COLUMNS=1
@@ -13,8 +13,8 @@ done
 
 echo "   👷 fetch \"$name\" metadata"
 
-tile_src="gs://versatiles/download/mbtiles/$name.mbtiles"
-tile_dst="gs://versatiles/download/versatiles/$name.versatiles"
+tile_src="gs://versatiles/download/$name.mbtiles"
+tile_dst="gs://versatiles/download/$name.versatiles"
 
 file_size=$(gcloud storage ls -L $tile_src | grep "Content-Length" | sed 's/^.*: *//')
 
