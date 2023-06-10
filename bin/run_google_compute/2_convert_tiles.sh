@@ -114,9 +114,10 @@ source .profile
 mkdir ramdisk
 sudo mount -t tmpfs -o size=${ram_disk_size}G ramdisk ramdisk
 gcloud storage cp $tile_src ramdisk/$file_src
-versatiles convert --compress brotli ramdisk/$file_src $file_dst
+versatiles convert ramdisk/$file_src $file_dst
 gcloud storage cp $file_dst $tile_dst
 " -- -t
+# versatiles convert --compress brotli ramdisk/$file_src $file_dst
 
 # Stop and delete
 gcloud compute instances stop versatiles-converter --quiet
