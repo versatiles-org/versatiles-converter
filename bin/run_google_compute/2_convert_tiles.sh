@@ -2,14 +2,26 @@
 
 echo "   👷 fetch files"
 
-files=$(gcloud storage ls 'gs://versatiles/download/**.mbtiles' | sed 's/.*\/download\///g' | sed 's/\.mbtiles$//g' | sort)
+mark=" ✅"
 IFS=$'\n'
-files=($files)
+mfiles=($(gcloud storage ls 'gs://versatiles/download/**.mbtiles' | sed 's/.*\/download\///g' | sed 's/\.mbtiles$//g' | sort))
+vfiles=($(gcloud storage ls 'gs://versatiles/download/**.versatiles' | sed 's/.*\/download\///g' | sed 's/\.versatiles$//g' | sort))
+
+for vfile in ${vfiles[@]}; do
+	for i in "${!mfiles[@]}"; do
+		if [[ ${mfiles[$i]} == $vfile ]]; then
+			mfiles[$i]="$vfile$mark"
+		fi
+	done
+done
+
 COLUMNS=1
 echo "   please select a file:"
-select name in "${files[@]}"; do
+select name in "${mfiles[@]}"; do
 	break;
 done
+
+name=${name/mark/""}
 
 echo "   👷 fetch \"$name\" metadata"
 
@@ -102,7 +114,7 @@ source .profile
 mkdir ramdisk
 sudo mount -t tmpfs -o size=${ram_disk_size}G ramdisk ramdisk
 gcloud storage cp $tile_src ramdisk/$file_src
-versatiles convert ramdisk/$file_src $file_dst
+versatiles convert --compress brotli ramdisk/$file_src $file_dst
 gcloud storage cp $file_dst $tile_dst
 " -- -t
 
