@@ -38,8 +38,8 @@ else
 fi
 
 ram_disk_size=$(perl -E "use POSIX;say ceil($file_size/1073741824 + 0.3)")
-cpu_count=$(perl -E "use POSIX; use List::Util qw(max); say 2 ** max(2, ceil(log($ram_disk_size+2)/log(2)) - 3)")
-machine_type="n2d-highmem-$cpu_count"
+cpu_count=$(perl -E "use POSIX; use List::Util qw(max); say 2 ** max(2, ceil(log($ram_disk_size+2)/log(2)) - 0)")
+machine_type="n2d-highcpu-$cpu_count"
 
 value=$(gcloud config get-value project)
 if [ $value = "" ]; then
