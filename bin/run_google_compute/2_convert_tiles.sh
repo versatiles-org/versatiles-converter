@@ -2,26 +2,34 @@
 
 echo "   👷 fetch files"
 
-mark=" ✅"
 IFS=$'\n'
 mfiles=($(gcloud storage ls 'gs://versatiles/download/**.mbtiles' | sed 's/.*\/download\///g' | sed 's/\.mbtiles$//g' | sort))
 vfiles=($(gcloud storage ls 'gs://versatiles/download/**.versatiles' | sed 's/.*\/download\///g' | sed 's/\.versatiles$//g' | sort))
 
-for vfile in ${vfiles[@]}; do
-	for i in "${!mfiles[@]}"; do
-		if [[ ${mfiles[$i]} == $vfile ]]; then
-			mfiles[$i]="$vfile$mark"
+for i in "${!mfiles[@]}"; do
+	mfile=${mfiles[$i]}
+	is_ok=false
+	for vfile in ${vfiles[@]}; do
+		if [[ $vfile == $mfile ]]; then
+			is_ok=true
+			break
 		fi
 	done
+
+	if [ "$is_ok" == true ]; then
+		mfiles[$i]="🆗 $mfile"
+	else
+		mfiles[$i]="🔴 $mfile"
+	fi
 done
 
 COLUMNS=1
 echo "   please select a file:"
 select name in "${mfiles[@]}"; do
-	break;
+	break
 done
 
-name=${name/mark/""}
+name=${name:5}
 
 echo "   👷 fetch \"$name\" metadata"
 
@@ -31,7 +39,7 @@ tile_dst="gs://versatiles/download/$name.versatiles"
 file_size=$(gcloud storage ls -L $tile_src | grep "Content-Length" | sed 's/^.*: *//')
 
 if ! [[ $file_size =~ ^[0-9]{5,}$ ]]; then
-   echo "   ❗️ file_size '$file_size' is not a number, maybe '$tile_src' does not exist?"
+	echo "   ❗️ file_size '$file_size' is not a number, maybe '$tile_src' does not exist?"
 	exit 1
 else
 	echo "   ✅ file exists: $tile_src"
@@ -71,7 +79,7 @@ else
 	echo "   ✅ gcloud compute/zone: $value"
 fi
 
-value=$(gcloud compute instances describe versatiles-converter 2>&1 > /dev/null)
+value=$(gcloud compute instances describe versatiles-converter 2>&1 >/dev/null)
 if [ $? -eq 0 ]; then
 	echo "   ❗️ versatiles-converter machine already exist. Delete it:"
 	echo "   # gcloud compute instances delete versatiles-converter -q"
@@ -80,7 +88,7 @@ else
 	echo "   ✅ gcloud instance free"
 fi
 
-value=$(gcloud compute images describe versatiles-converter 2>&1 > /dev/null)
+value=$(gcloud compute images describe versatiles-converter 2>&1 >/dev/null)
 if [ $? -ne 0 ]; then
 	echo "   ❗️ versatiles-converter image does not exist. Create it:"
 	echo "   # ./1_prepare_image.sh"
@@ -88,8 +96,6 @@ if [ $? -ne 0 ]; then
 else
 	echo "   ✅ gcloud image ready"
 fi
-
-
 
 # create VM from image
 gcloud compute instances create versatiles-converter \
@@ -99,9 +105,8 @@ gcloud compute instances create versatiles-converter \
 
 # Wait till SSH is available
 sleep 10
-while ! gcloud compute ssh versatiles-converter --command=ls
-do
-   echo "   SSL not available at VM, trying again..."
+while ! gcloud compute ssh versatiles-converter --command=ls; do
+	echo "   SSL not available at VM, trying again..."
 	sleep 5
 done
 
